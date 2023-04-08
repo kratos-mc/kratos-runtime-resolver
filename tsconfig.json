@@ -5,6 +5,7 @@
     // Declare for node
     "module": "CommonJS",
     "moduleResolution": "node",
+    "esModuleInterop": true,
 
     // Only use tsc to declare a d.ts
     "emitDeclarationOnly": true,
