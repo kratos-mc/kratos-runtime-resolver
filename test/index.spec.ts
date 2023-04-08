@@ -1,7 +1,8 @@
-import { rmSync } from "fs-extra";
+import { accessSync, rmSync } from "fs-extra";
 import { kratosRuntime } from "./../index";
 import { expect } from "chai";
 import { existsSync } from "fs-extra";
+import fse from "fs-extra";
 
 const TEST_OUTPUT = "test-output";
 function cleanupOutput() {
@@ -27,8 +28,13 @@ describe("[unit] assertion test", () => {
 
 describe("[unit] RuntimeWorkspace", () => {
   it("should be able to create an instance of RuntimeWorkspace", () => {
-    expect(true).to.be.true;
-    new kratosRuntime.RuntimeWorkspace(TEST_OUTPUT);
-    expect(() => {}).to.not.throws();
+    let t = new kratosRuntime.RuntimeWorkspace(TEST_OUTPUT);
+    expect(existsSync(t.getDirectory())).to.be.true;
+    expect(() =>
+      accessSync(
+        t.getDirectory(),
+        fse.constants.R_OK | fse.constants.W_OK | fse.constants.X_OK
+      )
+    ).to.not.be.throw();
   });
 });
