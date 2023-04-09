@@ -8,8 +8,9 @@
     "compile": "swc index.ts --out-file ./index.js -s",
     "build": "npm run prebuild && npm run compile && tsc",
     "prepack": "npm run build",
-    "test": "npm run prebuild && npm run compile && mocha ./test/**/*.spec.ts",
-    "coverage": "npm run prebuild && npm run compile && nyc mocha ./test/**/*.spec.ts"
+    "pretest": "npm run prebuild && npm run compile",
+    "test": "npm run pretest && mocha ./test/**/*.spec.ts",
+    "coverage": "npm run pretest && nyc mocha ./test/**/*.spec.ts"
   },
   "dependencies": {
     "fs-extra": "^11.1.1",
