@@ -27,7 +27,7 @@ export namespace kratosRuntime {
 
   export class RuntimeMap {
     private readonly _filePath: PathLike;
-    private readonly _runtimeMap: Map<number, RuntimeMapEntry>;
+    private readonly _runtimeMap: Map<number, RuntimeMapEntry> = new Map();
 
     constructor(runtimeWorkspace: RuntimeWorkspace) {
       this._filePath = pathJoin(
@@ -44,7 +44,7 @@ export namespace kratosRuntime {
         writeJsonSync(this._filePath, []);
       }
 
-      for (let r of runtimeList) {
+      for (const r of runtimeList) {
         const { major } = r;
         if (this._runtimeMap.has(major)) {
           throw new Error(`Invalid runtime map (duplicated key)`);
@@ -54,7 +54,11 @@ export namespace kratosRuntime {
       }
     }
 
-    public get getFilePath(): PathLike {
+    public getCacheMap() {
+      return this._runtimeMap;
+    }
+
+    public getFilePath(): PathLike {
       return this._filePath;
     }
 
@@ -68,6 +72,15 @@ export namespace kratosRuntime {
 
     public setRuntime(runtimeEntry: RuntimeMapEntry) {
       return this._runtimeMap.set(runtimeEntry.major, runtimeEntry);
+    }
+
+    public saveFile() {
+      let _buildValues = [];
+
+      for (const i of this._runtimeMap.values()) {
+        _buildValues.push(i);
+      }
+      writeJsonSync(this._filePath, _buildValues);
     }
   }
 
