@@ -13,5 +13,8 @@
 
     "removeComments": false
   },
-  "exclude": ["test/*"]
+  "exclude": ["test/*"],
+  "ts-node": {
+    "swc": true
+  }
 }
