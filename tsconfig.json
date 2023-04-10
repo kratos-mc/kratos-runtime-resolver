@@ -11,9 +11,12 @@
     "emitDeclarationOnly": true,
     "declaration": true,
 
-    "removeComments": false
+    "removeComments": false,
+
+    "typeRoots": ["node_modules/@types", "typings"],
+    "skipLibCheck": true
   },
-  "exclude": ["test/*"],
+  "exclude": ["test/*", "node_modules"],
   "ts-node": {
     "swc": true
   }
