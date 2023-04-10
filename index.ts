@@ -11,6 +11,7 @@ import {
 import { join as pathJoin } from "path";
 import fetch from "node-fetch";
 import AdminZip from "adm-zip";
+import tar from "tar";
 
 export namespace kratosRuntime {
   export class RuntimeWorkspace extends workspace.Workspace {
@@ -84,7 +85,7 @@ export namespace kratosRuntime {
       }
 
       // Create a new download process
-      const process = this.getRepository().createRuntimeDownloadProcess(
+      const process = await this.getRepository().createRuntimeDownloadProcess(
         {
           version: major,
           os: platform,
@@ -99,7 +100,7 @@ export namespace kratosRuntime {
       );
 
       // wait for success
-      const downloadInfo = await (await process).startDownload();
+      const downloadInfo = await process.startDownload();
       // const extractDestinationPath = pathJoin(this.getDirectory().toString());
 
       const extractDestination = await this.extractDownloadRuntime(
@@ -491,9 +492,7 @@ export namespace kratosRuntime {
         throw new Error(`The path is not exists: ${from}`);
       }
 
-      await (
-        await import("tar")
-      ).x({ file: from.toString(), cwd: to.toString() });
+      await tar.x({ file: from.toString(), cwd: to.toString() });
     }
   }
 }
