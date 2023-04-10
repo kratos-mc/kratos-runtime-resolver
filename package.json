@@ -27,7 +27,7 @@
     "build": "npm run prebuild && npm run compile && tsc",
     "prepack": "npm run build",
     "pretest": "npm run prebuild && npm run compile",
-    "test": "mocha ./test/**/*.spec.ts",
+    "test": "mocha ./test/**/*.spec.ts --full-trace",
     "coverage": "npm run pretest && nyc mocha ./test/**/*.spec.ts"
   },
   "dependencies": {
