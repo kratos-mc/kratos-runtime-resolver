@@ -124,6 +124,17 @@ describe("[unit] RuntimeWorkspace", () => {
         expect(runtimeFromMap).to.not.be.undefined;
         expect(runtimeFromMap?.path).to.eq(extractedPath);
         expect(existsSync(runtimeFromMap?.path as string)).to.be.true;
+
+        expect(runtimeWorkspace.getLatestRuntimeEntry()).to.not.be.undefined;
+        expect(runtimeWorkspace.getLatestRuntimeEntry()).to.have.keys([
+          "bin",
+          "path",
+          "major",
+        ]);
+
+        expect(runtimeWorkspace.getLatestRuntimeEntry()?.bin).to.includes(
+          extractedPath
+        );
       });
 
       it(`macos`, async function () {
@@ -142,6 +153,17 @@ describe("[unit] RuntimeWorkspace", () => {
         expect(runtimeFromMap).to.not.be.undefined;
         expect(runtimeFromMap?.path).to.eq(extractedPath);
         expect(existsSync(runtimeFromMap?.path as string)).to.be.true;
+
+        expect(runtimeWorkspace.getLatestRuntimeEntry()).to.not.be.undefined;
+        expect(runtimeWorkspace.getLatestRuntimeEntry()).to.have.keys([
+          "bin",
+          "path",
+          "major",
+        ]);
+
+        expect(runtimeWorkspace.getLatestRuntimeEntry()?.bin).to.includes(
+          extractedPath
+        );
       });
 
       it(`linux`, async function () {
@@ -158,6 +180,17 @@ describe("[unit] RuntimeWorkspace", () => {
         expect(runtimeFromMap).to.not.be.undefined;
         expect(runtimeFromMap?.path).to.eq(extractedPath);
         expect(existsSync(runtimeFromMap?.path as string)).to.be.true;
+
+        expect(runtimeWorkspace.getLatestRuntimeEntry()).to.not.be.undefined;
+        expect(runtimeWorkspace.getLatestRuntimeEntry()).to.have.keys([
+          "bin",
+          "path",
+          "major",
+        ]);
+
+        expect(runtimeWorkspace.getLatestRuntimeEntry()?.bin).to.includes(
+          extractedPath
+        );
       });
     });
   });
@@ -210,6 +243,8 @@ describe("[unit] RuntimeMap", () => {
       expect(a).to.have.lengthOf.gt(0);
 
       expect(r.hasRuntime(7)).to.be.true;
+      expect(r.getHighestMajor()).not.to.be.undefined;
+      expect(r.getHighestMajor()).to.gt(0);
     });
   });
 
