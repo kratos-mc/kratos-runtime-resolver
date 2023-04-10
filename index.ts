@@ -460,21 +460,13 @@ export namespace kratosRuntime {
       from: PathLike | string,
       to: PathLike | string
     ) {
-      return new Promise<void>((resolve, reject) => {
-        // Check the path exists
-        if (!existsSync(from)) {
-          return reject(new Error(`The path is not exists: ${from}`));
-        }
+      // Check the path exists
+      if (!existsSync(from)) {
+        throw new Error(`The path is not exists: ${from}`);
+      }
 
-        const zip = new AdminZip(from.toString());
-        zip.extractAllToAsync(to.toString(), true, false, (err) => {
-          if (err) {
-            return reject(err);
-          }
-
-          resolve();
-        });
-      });
+      const zip = new AdminZip(from.toString());
+      zip.extractAllTo(to.toString(), true, false);
     }
 
     /**
