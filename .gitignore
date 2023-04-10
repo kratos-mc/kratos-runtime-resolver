@@ -146,3 +146,5 @@ dist
 index.d.ts
 index.js
 index.js.map
+
+test-output
