@@ -1,3 +1,9 @@
 test
 kratos-runtime-resolver-*.tgz
 tsconfig.json
+yarn-error.log
+yarn.lock
+.github
+.mocharc.json
+.nyc_output
+.swcrc

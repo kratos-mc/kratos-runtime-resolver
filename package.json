@@ -3,6 +3,24 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "description": "The JDK resolver for Kratos Launcher",
+  "keywords": [
+    "kratos-mc",
+    "minecraft",
+    "jdk",
+    "kratos-launcher"
+  ],
+  "author": {
+    "name": "kratos-mc",
+    "url": "https://github.com/kratos-mc"
+  },
+  "bugs": {
+    "url": "https://github.com/kratos-mc/kratos-runtime-resolver/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kratos-mc/kratos-runtime-resolver"
+  },
   "scripts": {
     "prebuild": "rimraf ./index.{js,d.ts}",
     "compile": "swc index.ts --out-file ./index.js -s",
