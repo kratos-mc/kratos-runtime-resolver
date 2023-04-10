@@ -142,7 +142,7 @@ export namespace kratosRuntime {
       // extract the runtime
       if (platform === "windows") {
         // extract using .zip
-        RuntimeExtractor.extractZip(
+        await RuntimeExtractor.extractZip(
           downloadInfo.destination,
           this.getDirectory()
         );
@@ -455,14 +455,25 @@ export namespace kratosRuntime {
      * @param from the source of the file to be extracted
      * @param to the destination directory to be extracted
      */
-    public static extractZip(from: PathLike | string, to: PathLike | string) {
+    public static async extractZip(
+      from: PathLike | string,
+      to: PathLike | string
+    ) {
       // Check the path exists
       if (!existsSync(from)) {
         throw new Error(`The path is not exists: ${from}`);
       }
 
       const zip = new AdminZip(from.toString());
-      zip.extractAllTo(to.toString(), true);
+      return new Promise<void>((resolve, reject) => {
+        zip.extractAllToAsync(to.toString(), true, false, (err) => {
+          if (err) {
+            return reject(err);
+          }
+
+          resolve();
+        });
+      });
     }
 
     /**
