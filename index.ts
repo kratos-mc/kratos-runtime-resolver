@@ -32,14 +32,36 @@ export namespace kratosRuntime {
       return this.map;
     }
 
+    /**
+     * Retrieves the instance of repository.
+     *
+     * @returns the repository manager instance
+     */
     public getRepository() {
       return this.repository;
     }
 
+    /**
+     * Retrieves the temporary directory path name.
+     *
+     * The temporary directory is created as a destination to store downloaded files.
+     *
+     * @returns the temporary directory path name
+     */
     public getTemporaryDir() {
       return pathJoin(this.getDirectory().toString(), "temp");
     }
 
+    /**
+     * Downloads and extracts the runtime into current runtime workspace value.
+     *
+     * After extracted, the map stores the version into workspace.
+     *
+     * @param major a major version of java runtime
+     * @param platform a platform of java runtime to download. Should be windows, mac, or linux
+     * @param arch an architecture of java runtime to download. Should be x64 or x86
+     * @returns the destination of the extracted directory as know as Java path.
+     */
     public async downloadRuntime(
       major: number,
       platform: RuntimeBuildOs,
@@ -77,56 +99,89 @@ export namespace kratosRuntime {
       );
 
       // wait for success
-      const downloadInfo = (await process).startDownload();
-      const extractPath = pathJoin(this.getDirectory().toString());
+      const downloadInfo = await (await process).startDownload();
+      // const extractDestinationPath = pathJoin(this.getDirectory().toString());
 
-      // If the extract path is not exists, make it
-      if (!existsSync(extractPath)) {
-        ensureDir(extractPath);
-      }
-
-      // extract the runtime
-      if (platform === "windows") {
-        // extract using .zip
-        RuntimeExtractor.extractZip(
-          (await downloadInfo).destination,
-          extractPath
-        );
-      } else {
-        // extract using .tar.gz
-        await RuntimeExtractor.extractTarGz(
-          (
-            await downloadInfo
-          ).destination,
-          extractPath
-        );
-      }
-
-      const releaseName = this.repository.getCachedReleaseName(major);
-      const exportPathName = pathJoin(extractPath, `jdk_${major}`);
-
-      if (existsSync(exportPathName)) {
-        removeSync(exportPathName);
-      }
-      moveSync(pathJoin(extractPath, releaseName), exportPathName);
+      const extractDestination = await this.extractDownloadRuntime(
+        major,
+        platform,
+        downloadInfo
+      );
 
       // Push into runtime map
       this.map.setRuntime({
         major,
-        path: exportPathName,
+        path: extractDestination,
         bin:
           platform === "mac"
-            ? pathJoin(exportPathName, "Contents", "Home", "bin")
-            : pathJoin(exportPathName, "bin"),
+            ? pathJoin(extractDestination, "Contents", "Home", "bin")
+            : pathJoin(extractDestination, "bin"),
       });
 
       // Store runtime map
       this.getRuntimeMap().saveFile();
 
-      // Clean up
-      removeSync((await downloadInfo).destination);
+      // Clean up download information
+      removeSync(downloadInfo.destination);
 
-      return exportPathName;
+      return extractDestination;
+    }
+    /**
+     * Extracts a downloaded destination file into a form of Kratos launcher format.
+     *
+     * @param major a major version of downloaded package
+     * @param platform a platform of downloaded package
+     * @param downloadInfo a download info from download process
+     * @returns a path after extracted
+     */
+    public async extractDownloadRuntime(
+      major: number,
+      platform: RuntimeBuildOs,
+      downloadInfo: download.DownloadInfo
+    ) {
+      // extract the runtime
+      if (platform === "windows") {
+        // extract using .zip
+        RuntimeExtractor.extractZip(
+          downloadInfo.destination,
+          this.getDirectory()
+        );
+      } else {
+        // extract using .tar.gz
+        await RuntimeExtractor.extractTarGz(
+          downloadInfo.destination,
+          this.getDirectory()
+        );
+      }
+
+      const releaseName = this.repository.getCachedReleaseName(major);
+      const extractDestination = pathJoin(
+        this.getDirectory().toString(),
+        `jdk_${major}`
+      );
+
+      if (existsSync(extractDestination)) {
+        removeSync(extractDestination);
+      }
+
+      moveSync(
+        pathJoin(this.getDirectory().toString(), releaseName),
+        extractDestination
+      );
+
+      return extractDestination;
+    }
+
+    /**
+     * Finds the highest runtime version entry from the cache map.
+     * If the map is empty, undefined is returned.
+     *
+     * @returns the highest latest runtime version entry from map
+     */
+    public getLatestRuntimeEntry() {
+      return this.getRuntimeMap().getRuntime(
+        this.getRuntimeMap().getHighestMajor()
+      );
     }
   }
 
@@ -139,6 +194,7 @@ export namespace kratosRuntime {
   export class RuntimeMap {
     private readonly _filePath: PathLike;
     private readonly _runtimeMap: Map<number, RuntimeMapEntry> = new Map();
+    private _highestRuntimeMajor: number | undefined;
 
     constructor(runtimeWorkspace: RuntimeWorkspace) {
       this._filePath = pathJoin(
@@ -160,7 +216,11 @@ export namespace kratosRuntime {
         if (this._runtimeMap.has(major)) {
           throw new Error(`Invalid runtime map (duplicated key)`);
         }
-
+        if (
+          this._highestRuntimeMajor < major ||
+          this._highestRuntimeMajor === undefined
+        )
+          this._highestRuntimeMajor = major;
         this._runtimeMap.set(major, r);
       }
     }
@@ -182,6 +242,13 @@ export namespace kratosRuntime {
     }
 
     public setRuntime(runtimeEntry: RuntimeMapEntry) {
+      // Replace a highest runtime major
+      if (
+        this._highestRuntimeMajor < runtimeEntry.major ||
+        this._highestRuntimeMajor === undefined
+      )
+        this._highestRuntimeMajor = runtimeEntry.major;
+
       return this._runtimeMap.set(runtimeEntry.major, runtimeEntry);
     }
 
@@ -192,6 +259,15 @@ export namespace kratosRuntime {
         _buildValues.push(i);
       }
       writeJsonSync(this._filePath, _buildValues);
+    }
+
+    /**
+     * Retrieves the highest major version of the map. If no entry was found, return undefined.
+     *
+     * @returns the highest major that contains in map. Otherwise return undefined
+     */
+    public getHighestMajor(): number | undefined {
+      return this._highestRuntimeMajor;
     }
   }
 
@@ -297,6 +373,12 @@ export namespace kratosRuntime {
       return url;
     }
 
+    /**
+     * Retrieves the package information of current runtime.
+     *
+     * @param buildOptions a build option for the runtime
+     * @returns a {@link Release} body which fetch from server
+     */
     public async fetchPackageInfo(buildOptions?: RuntimeBuildOptions) {
       // Fetch the package info first
       const response = await fetch(
@@ -363,7 +445,16 @@ export namespace kratosRuntime {
     }
   }
 
+  /**
+   * The extractor use to extract archives.
+   */
   export class RuntimeExtractor {
+    /**
+     * Extracts a zip file.
+     *
+     * @param from the source of the file to be extracted
+     * @param to the destination directory to be extracted
+     */
     public static extractZip(from: PathLike | string, to: PathLike | string) {
       // Check the path exists
       if (!existsSync(from)) {
@@ -374,6 +465,12 @@ export namespace kratosRuntime {
       zip.extractAllTo(to.toString(), true);
     }
 
+    /**
+     * Extracts a .tar.gz file.
+     *
+     * @param from the source of the file to be extracted
+     * @param to the destination directory to be extracted
+     */
     public static async extractTarGz(
       from: PathLike | string,
       to: PathLike | string
