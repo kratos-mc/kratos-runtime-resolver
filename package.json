@@ -1,6 +1,6 @@
 {
   "name": "kratos-runtime-resolver",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "index.js",
   "license": "MIT",
   "description": "The JDK resolver for Kratos Launcher",
