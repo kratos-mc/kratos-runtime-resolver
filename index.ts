@@ -65,7 +65,8 @@ export namespace kratosRuntime {
     public async downloadRuntime(
       major: number,
       platform: RuntimeBuildOs,
-      arch: RuntimeBuildArchitecture
+      arch: RuntimeBuildArchitecture,
+      imageType?: "jre" | "jdk"
     ) {
       if (major === undefined || platform === undefined || arch === undefined) {
         throw new Error(`Invalid parameter`);
@@ -89,6 +90,7 @@ export namespace kratosRuntime {
           version: major,
           os: platform,
           arch,
+          image_type: imageType || "jre",
         },
         pathJoin(
           this.getTemporaryDir(),
