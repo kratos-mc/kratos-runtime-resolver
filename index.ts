@@ -279,6 +279,7 @@ export namespace kratosRuntime {
     version?: number;
     arch?: RuntimeBuildArchitecture;
     os?: RuntimeBuildOs;
+    image_type?: "jdk" | "jre";
   }
 
   interface Package {
@@ -366,7 +367,10 @@ export namespace kratosRuntime {
         "architecture",
         (options && options.arch) || "x64"
       );
-      url.searchParams.append("image_type", "jdk");
+      url.searchParams.append(
+        "image_type",
+        (options && options.image_type) || "jdk"
+      );
       url.searchParams.append("os", (options && options.os) || "windows");
       url.searchParams.append("vendor", "eclipse");
 
