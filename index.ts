@@ -65,7 +65,8 @@ export namespace kratosRuntime {
     public async downloadRuntime(
       major: number,
       platform: RuntimeBuildOs,
-      arch: RuntimeBuildArchitecture
+      arch: RuntimeBuildArchitecture,
+      imageType?: "jre" | "jdk"
     ) {
       if (major === undefined || platform === undefined || arch === undefined) {
         throw new Error(`Invalid parameter`);
@@ -84,18 +85,21 @@ export namespace kratosRuntime {
       }
 
       // Create a new download process
+      const downloadDestination = pathJoin(
+        this.getTemporaryDir(),
+        `${major}_${arch}_${platform}.${
+          platform === `windows` ? `zip` : `tar.gz`
+        }`
+      );
+
       const process = await this.getRepository().createRuntimeDownloadProcess(
         {
           version: major,
           os: platform,
           arch,
+          image_type: imageType || "jre",
         },
-        pathJoin(
-          this.getTemporaryDir(),
-          `${major}_${arch}_${platform}.${
-            platform === `windows` ? `zip` : `tar.gz`
-          }`
-        )
+        downloadDestination
       );
 
       // wait for success
@@ -105,7 +109,8 @@ export namespace kratosRuntime {
       const extractDestination = await this.extractDownloadRuntime(
         major,
         platform,
-        downloadInfo
+        downloadInfo,
+        imageType
       );
 
       // Push into runtime map
@@ -137,8 +142,10 @@ export namespace kratosRuntime {
     public async extractDownloadRuntime(
       major: number,
       platform: RuntimeBuildOs,
-      downloadInfo: download.DownloadInfo
+      downloadInfo: download.DownloadInfo,
+      imageType?: "jre" | "jdk"
     ) {
+      if (imageType === undefined) imageType = "jre";
       // extract the runtime
       if (platform === "windows") {
         // extract using .zip
@@ -163,9 +170,11 @@ export namespace kratosRuntime {
       if (existsSync(extractDestination)) {
         removeSync(extractDestination);
       }
+      const sourceExtractedFileName =
+        releaseName + (imageType === "jre" ? "-jre" : "");
 
       moveSync(
-        pathJoin(this.getDirectory().toString(), releaseName),
+        pathJoin(this.getDirectory().toString(), sourceExtractedFileName),
         extractDestination
       );
 
