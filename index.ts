@@ -85,6 +85,13 @@ export namespace kratosRuntime {
       }
 
       // Create a new download process
+      const downloadDestination = pathJoin(
+        this.getTemporaryDir(),
+        `${major}_${arch}_${platform}.${
+          platform === `windows` ? `zip` : `tar.gz`
+        }`
+      );
+
       const process = await this.getRepository().createRuntimeDownloadProcess(
         {
           version: major,
@@ -92,12 +99,7 @@ export namespace kratosRuntime {
           arch,
           image_type: imageType || "jre",
         },
-        pathJoin(
-          this.getTemporaryDir(),
-          `${major}_${arch}_${platform}.${
-            platform === `windows` ? `zip` : `tar.gz`
-          }`
-        )
+        downloadDestination
       );
 
       // wait for success
@@ -107,7 +109,8 @@ export namespace kratosRuntime {
       const extractDestination = await this.extractDownloadRuntime(
         major,
         platform,
-        downloadInfo
+        downloadInfo,
+        imageType
       );
 
       // Push into runtime map
@@ -142,6 +145,7 @@ export namespace kratosRuntime {
       downloadInfo: download.DownloadInfo,
       imageType?: "jre" | "jdk"
     ) {
+      if (imageType === undefined) imageType = "jre";
       // extract the runtime
       if (platform === "windows") {
         // extract using .zip
@@ -160,15 +164,17 @@ export namespace kratosRuntime {
       const releaseName = this.repository.getCachedReleaseName(major);
       const extractDestination = pathJoin(
         this.getDirectory().toString(),
-        `jdk_${major}${imageType && imageType === "jre" ? "-jre" : ""}`
+        `jdk_${major}`
       );
 
       if (existsSync(extractDestination)) {
         removeSync(extractDestination);
       }
+      const sourceExtractedFileName =
+        releaseName + (imageType === "jre" ? "-jre" : "");
 
       moveSync(
-        pathJoin(this.getDirectory().toString(), releaseName),
+        pathJoin(this.getDirectory().toString(), sourceExtractedFileName),
         extractDestination
       );
 
