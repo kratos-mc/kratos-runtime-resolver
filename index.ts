@@ -94,7 +94,7 @@ export namespace kratosRuntime {
         },
         pathJoin(
           this.getTemporaryDir(),
-          `${major}_${arch}_${platform}${imageType === "jre" && "-jre"}.${
+          `${major}_${arch}_${platform}.${
             platform === `windows` ? `zip` : `tar.gz`
           }`
         )
@@ -139,7 +139,8 @@ export namespace kratosRuntime {
     public async extractDownloadRuntime(
       major: number,
       platform: RuntimeBuildOs,
-      downloadInfo: download.DownloadInfo
+      downloadInfo: download.DownloadInfo,
+      imageType?: "jre" | "jdk"
     ) {
       // extract the runtime
       if (platform === "windows") {
@@ -159,7 +160,7 @@ export namespace kratosRuntime {
       const releaseName = this.repository.getCachedReleaseName(major);
       const extractDestination = pathJoin(
         this.getDirectory().toString(),
-        `jdk_${major}`
+        `jdk_${major}${imageType && imageType === "jre" ? "-jre" : ""}`
       );
 
       if (existsSync(extractDestination)) {
