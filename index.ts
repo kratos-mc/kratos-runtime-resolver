@@ -94,7 +94,7 @@ export namespace kratosRuntime {
         },
         pathJoin(
           this.getTemporaryDir(),
-          `${major}_${arch}_${platform}.${
+          `${major}_${arch}_${platform}${imageType === "jre" && "-jre"}.${
             platform === `windows` ? `zip` : `tar.gz`
           }`
         )
