@@ -322,6 +322,19 @@ describe("[unit] RuntimeRepositoryManager", () => {
     ).to.eq(
       `https://api.adoptium.net/v3/assets/latest/-1/hotspot?architecture=x64&image_type=jdk&os=windows&vendor=eclipse`
     );
+
+    expect(
+      repositoryManager
+        .buildJdkPackageInfoUrl({
+          version: 8,
+          arch: "x64",
+          os: "mac",
+          image_type: "jre",
+        })
+        .toString()
+    ).to.eq(
+      `https://api.adoptium.net/v3/assets/latest/8/hotspot?architecture=x64&image_type=jre&os=mac&vendor=eclipse`
+    );
   });
 
   it(`should throw with invalid architecture or platform`, () => {
@@ -351,6 +364,26 @@ describe("[unit] RuntimeRepositoryManager", () => {
     let downloadInfo = await downloadProcess.startDownload();
     expect(existsSync(downloadInfo.destination)).to.be.true;
 
+    // Then remove the file
+    rmSync("download", { force: true, recursive: true });
+  });
+
+  it(`should install a jre`, async function () {
+    if (SKIP_DOWNLOAD_TEST) {
+      return this.skip();
+    }
+
+    this.timeout(50000);
+    const downloadProcess =
+      await repositoryManager.createRuntimeDownloadProcess(
+        { version: 8, arch: "x64", os: "windows", image_type: "jre" },
+        pathJoin(TEST_OUTPUT, "download", "runtime", "8.tar.gz")
+      );
+
+    expect(downloadProcess).not.to.be.undefined;
+
+    let downloadInfo = await downloadProcess.startDownload();
+    expect(existsSync(downloadInfo.destination)).to.be.true;
     // Then remove the file
     rmSync("download", { force: true, recursive: true });
   });
