@@ -366,7 +366,7 @@ export namespace kratosRuntime {
         "architecture",
         (options && options.arch) || "x64"
       );
-      url.searchParams.append("image_type", "jdk");
+      url.searchParams.append("image_type", "jre");
       url.searchParams.append("os", (options && options.os) || "windows");
       url.searchParams.append("vendor", "eclipse");
 
